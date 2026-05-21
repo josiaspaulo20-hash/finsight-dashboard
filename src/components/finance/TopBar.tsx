@@ -54,7 +54,7 @@ export function TopBar() {
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="gap-1.5 hidden sm:inline-flex">
             <Calendar className="h-3.5 w-3.5" />
-            <span className="text-xs">{RANGES.find((r) => r.key === state.dateRange)?.label}</span>
+            <span className="text-xs">{t(RANGES.find((r) => r.key === state.dateRange)?.labelKey ?? "")}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
