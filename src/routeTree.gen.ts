@@ -9,15 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RevenueRouteImport } from './routes/revenue'
+import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ReceivablesRouteImport } from './routes/receivables'
 import { Route as ExpensesRouteImport } from './routes/expenses'
 import { Route as CashFlowRouteImport } from './routes/cash-flow'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RevenueRoute = RevenueRouteImport.update({
   id: '/revenue',
   path: '/revenue',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReceivablesRoute = ReceivablesRouteImport.update({
@@ -46,14 +58,18 @@ export interface FileRoutesByFullPath {
   '/cash-flow': typeof CashFlowRoute
   '/expenses': typeof ExpensesRoute
   '/receivables': typeof ReceivablesRoute
+  '/reports': typeof ReportsRoute
   '/revenue': typeof RevenueRoute
+  '/settings': typeof SettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cash-flow': typeof CashFlowRoute
   '/expenses': typeof ExpensesRoute
   '/receivables': typeof ReceivablesRoute
+  '/reports': typeof ReportsRoute
   '/revenue': typeof RevenueRoute
+  '/settings': typeof SettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -61,20 +77,38 @@ export interface FileRoutesById {
   '/cash-flow': typeof CashFlowRoute
   '/expenses': typeof ExpensesRoute
   '/receivables': typeof ReceivablesRoute
+  '/reports': typeof ReportsRoute
   '/revenue': typeof RevenueRoute
+  '/settings': typeof SettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/cash-flow' | '/expenses' | '/receivables' | '/revenue'
+  fullPaths:
+    | '/'
+    | '/cash-flow'
+    | '/expenses'
+    | '/receivables'
+    | '/reports'
+    | '/revenue'
+    | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cash-flow' | '/expenses' | '/receivables' | '/revenue'
+  to:
+    | '/'
+    | '/cash-flow'
+    | '/expenses'
+    | '/receivables'
+    | '/reports'
+    | '/revenue'
+    | '/settings'
   id:
     | '__root__'
     | '/'
     | '/cash-flow'
     | '/expenses'
     | '/receivables'
+    | '/reports'
     | '/revenue'
+    | '/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -82,16 +116,32 @@ export interface RootRouteChildren {
   CashFlowRoute: typeof CashFlowRoute
   ExpensesRoute: typeof ExpensesRoute
   ReceivablesRoute: typeof ReceivablesRoute
+  ReportsRoute: typeof ReportsRoute
   RevenueRoute: typeof RevenueRoute
+  SettingsRoute: typeof SettingsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/revenue': {
       id: '/revenue'
       path: '/revenue'
       fullPath: '/revenue'
       preLoaderRoute: typeof RevenueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/receivables': {
@@ -130,7 +180,9 @@ const rootRouteChildren: RootRouteChildren = {
   CashFlowRoute: CashFlowRoute,
   ExpensesRoute: ExpensesRoute,
   ReceivablesRoute: ReceivablesRoute,
+  ReportsRoute: ReportsRoute,
   RevenueRoute: RevenueRoute,
+  SettingsRoute: SettingsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
