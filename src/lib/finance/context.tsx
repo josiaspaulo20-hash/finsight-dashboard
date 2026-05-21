@@ -1,11 +1,13 @@
 import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
 import type { CurrencyCode, DateRangeKey, Invoice } from "./types";
 import { SEED_INVOICES, generateAlerts } from "./seed";
+import type { Language } from "./i18n";
 
 interface State {
   currency: CurrencyCode;
   dateRange: DateRangeKey;
   theme: "light" | "dark";
+  language: Language;
   invoices: Invoice[];
   dismissedAlerts: string[];
   activeMonth: number; // 0-11
@@ -15,6 +17,7 @@ type Action =
   | { type: "SET_CURRENCY"; currency: CurrencyCode }
   | { type: "SET_RANGE"; range: DateRangeKey }
   | { type: "SET_THEME"; theme: "light" | "dark" }
+  | { type: "SET_LANGUAGE"; language: Language }
   | { type: "MARK_PAID"; id: string }
   | { type: "UNMARK_PAID"; id: string; prev: Invoice }
   | { type: "DISMISS_ALERT"; id: string }
@@ -24,6 +27,7 @@ const initial: State = {
   currency: "USD",
   dateRange: "12m",
   theme: "light",
+  language: "en",
   invoices: SEED_INVOICES,
   dismissedAlerts: [],
   activeMonth: 11,
@@ -37,6 +41,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, dateRange: action.range };
     case "SET_THEME":
       return { ...state, theme: action.theme };
+    case "SET_LANGUAGE":
+      return { ...state, language: action.language };
     case "MARK_PAID":
       return {
         ...state,
@@ -74,8 +80,10 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === "undefined") return;
     const theme = localStorage.getItem("finboard.theme") as "light" | "dark" | null;
     const currency = localStorage.getItem("finboard.currency") as CurrencyCode | null;
+    const language = localStorage.getItem("finboard.language") as Language | null;
     if (theme && theme !== state.theme) dispatch({ type: "SET_THEME", theme });
     if (currency && currency !== state.currency) dispatch({ type: "SET_CURRENCY", currency });
+    if (language && language !== state.language) dispatch({ type: "SET_LANGUAGE", language });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -89,6 +97,12 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === "undefined") return;
     localStorage.setItem("finboard.currency", state.currency);
   }, [state.currency]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem("finboard.language", state.language);
+    document.documentElement.lang = state.language;
+  }, [state.language]);
 
   const alerts = useMemo(
     () => generateAlerts(state.invoices).filter((a) => !state.dismissedAlerts.includes(a.id)),
