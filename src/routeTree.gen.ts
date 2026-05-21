@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RevenueRouteImport } from './routes/revenue'
 import { Route as ReceivablesRouteImport } from './routes/receivables'
+import { Route as ExpensesRouteImport } from './routes/expenses'
 import { Route as CashFlowRouteImport } from './routes/cash-flow'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -22,6 +23,11 @@ const RevenueRoute = RevenueRouteImport.update({
 const ReceivablesRoute = ReceivablesRouteImport.update({
   id: '/receivables',
   path: '/receivables',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpensesRoute = ExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CashFlowRoute = CashFlowRouteImport.update({
@@ -38,12 +44,14 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cash-flow': typeof CashFlowRoute
+  '/expenses': typeof ExpensesRoute
   '/receivables': typeof ReceivablesRoute
   '/revenue': typeof RevenueRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cash-flow': typeof CashFlowRoute
+  '/expenses': typeof ExpensesRoute
   '/receivables': typeof ReceivablesRoute
   '/revenue': typeof RevenueRoute
 }
@@ -51,20 +59,28 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/cash-flow': typeof CashFlowRoute
+  '/expenses': typeof ExpensesRoute
   '/receivables': typeof ReceivablesRoute
   '/revenue': typeof RevenueRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/cash-flow' | '/receivables' | '/revenue'
+  fullPaths: '/' | '/cash-flow' | '/expenses' | '/receivables' | '/revenue'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cash-flow' | '/receivables' | '/revenue'
-  id: '__root__' | '/' | '/cash-flow' | '/receivables' | '/revenue'
+  to: '/' | '/cash-flow' | '/expenses' | '/receivables' | '/revenue'
+  id:
+    | '__root__'
+    | '/'
+    | '/cash-flow'
+    | '/expenses'
+    | '/receivables'
+    | '/revenue'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CashFlowRoute: typeof CashFlowRoute
+  ExpensesRoute: typeof ExpensesRoute
   ReceivablesRoute: typeof ReceivablesRoute
   RevenueRoute: typeof RevenueRoute
 }
@@ -83,6 +99,13 @@ declare module '@tanstack/react-router' {
       path: '/receivables'
       fullPath: '/receivables'
       preLoaderRoute: typeof ReceivablesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expenses': {
+      id: '/expenses'
+      path: '/expenses'
+      fullPath: '/expenses'
+      preLoaderRoute: typeof ExpensesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cash-flow': {
@@ -105,6 +128,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CashFlowRoute: CashFlowRoute,
+  ExpensesRoute: ExpensesRoute,
   ReceivablesRoute: ReceivablesRoute,
   RevenueRoute: RevenueRoute,
 }
