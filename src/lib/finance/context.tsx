@@ -67,12 +67,17 @@ interface Ctx {
 const FinanceContext = createContext<Ctx | null>(null);
 
 export function FinanceProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initial, (s) => {
-    if (typeof window === "undefined") return s;
-    const theme = (localStorage.getItem("finboard.theme") as "light" | "dark" | null) ?? s.theme;
-    const currency = (localStorage.getItem("finboard.currency") as CurrencyCode | null) ?? s.currency;
-    return { ...s, theme, currency };
-  });
+  const [state, dispatch] = useReducer(reducer, initial);
+
+  // Hydrate from localStorage after mount to avoid SSR/client mismatch.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const theme = localStorage.getItem("finboard.theme") as "light" | "dark" | null;
+    const currency = localStorage.getItem("finboard.currency") as CurrencyCode | null;
+    if (theme && theme !== state.theme) dispatch({ type: "SET_THEME", theme });
+    if (currency && currency !== state.currency) dispatch({ type: "SET_CURRENCY", currency });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
