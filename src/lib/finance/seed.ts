@@ -76,7 +76,7 @@ export const MONTHLY: MonthlyRecord[] = REVENUE_USD.map((rev, i) => {
   };
 
   const revByCurrency: Record<CurrencyCode, number> = {
-    USD: 0, EUR: 0, GBP: 0, JPY: 0, CAD: 0, AUD: 0, AOA: 1,
+    USD: 0, EUR: 0, GBP: 0, JPY: 0, CAD: 0, AUD: 0, AOA: 0,
   };
   CLIENTS.forEach((c) => {
     const shareUsd = rev * (CLIENT_SHARES[c.id] ?? 0);
