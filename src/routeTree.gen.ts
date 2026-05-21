@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RevenueRouteImport } from './routes/revenue'
+import { Route as ReceivablesRouteImport } from './routes/receivables'
 import { Route as CashFlowRouteImport } from './routes/cash-flow'
 import { Route as IndexRouteImport } from './routes/index'
 
 const RevenueRoute = RevenueRouteImport.update({
   id: '/revenue',
   path: '/revenue',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReceivablesRoute = ReceivablesRouteImport.update({
+  id: '/receivables',
+  path: '/receivables',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CashFlowRoute = CashFlowRouteImport.update({
@@ -32,30 +38,34 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cash-flow': typeof CashFlowRoute
+  '/receivables': typeof ReceivablesRoute
   '/revenue': typeof RevenueRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cash-flow': typeof CashFlowRoute
+  '/receivables': typeof ReceivablesRoute
   '/revenue': typeof RevenueRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/cash-flow': typeof CashFlowRoute
+  '/receivables': typeof ReceivablesRoute
   '/revenue': typeof RevenueRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/cash-flow' | '/revenue'
+  fullPaths: '/' | '/cash-flow' | '/receivables' | '/revenue'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cash-flow' | '/revenue'
-  id: '__root__' | '/' | '/cash-flow' | '/revenue'
+  to: '/' | '/cash-flow' | '/receivables' | '/revenue'
+  id: '__root__' | '/' | '/cash-flow' | '/receivables' | '/revenue'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CashFlowRoute: typeof CashFlowRoute
+  ReceivablesRoute: typeof ReceivablesRoute
   RevenueRoute: typeof RevenueRoute
 }
 
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/revenue'
       fullPath: '/revenue'
       preLoaderRoute: typeof RevenueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/receivables': {
+      id: '/receivables'
+      path: '/receivables'
+      fullPath: '/receivables'
+      preLoaderRoute: typeof ReceivablesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cash-flow': {
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CashFlowRoute: CashFlowRoute,
+  ReceivablesRoute: ReceivablesRoute,
   RevenueRoute: RevenueRoute,
 }
 export const routeTree = rootRouteImport
