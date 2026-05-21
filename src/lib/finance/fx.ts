@@ -7,6 +7,7 @@ export const FX_RATES: Record<CurrencyCode, number> = {
   JPY: 149.55,
   CAD: 1.362,
   AUD: 1.534,
+  AOA: 912,
 };
 
 export const CURRENCY_META: Record<
@@ -19,6 +20,7 @@ export const CURRENCY_META: Record<
   JPY: { symbol: "¥", flag: "🇯🇵", name: "Japanese Yen", decimals: 0 },
   CAD: { symbol: "CA$", flag: "🇨🇦", name: "Canadian Dollar", decimals: 2 },
   AUD: { symbol: "AU$", flag: "🇦🇺", name: "Australian Dollar", decimals: 2 },
+  AOA: { symbol: "AOA ", flag: "🇦🇴", name: "Angolan Kwanza", decimals: 2 },
 };
 
 export function convert(amount: number, from: CurrencyCode, to: CurrencyCode): number {
@@ -27,4 +29,4 @@ export function convert(amount: number, from: CurrencyCode, to: CurrencyCode): n
   return usd * FX_RATES[to];
 }
 
-export const ALL_CURRENCIES: CurrencyCode[] = ["USD", "EUR", "GBP", "JPY", "CAD", "AUD"];
+export const ALL_CURRENCIES: CurrencyCode[] = ["USD", "EUR", "GBP", "JPY", "CAD", "AUD", "AOA"];
