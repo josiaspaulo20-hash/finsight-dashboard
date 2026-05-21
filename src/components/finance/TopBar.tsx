@@ -1,9 +1,10 @@
-import { Bell, Moon, Sun, Calendar } from "lucide-react";
+import { Bell, Moon, Sun, Calendar, Languages } from "lucide-react";
 import { useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance/context";
 import { ALL_CURRENCIES, CURRENCY_META } from "@/lib/finance/fx";
 import type { CurrencyCode, DateRangeKey } from "@/lib/finance/types";
+import { LANGUAGES, useT, type Language } from "@/lib/finance/i18n";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -15,34 +16,38 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const PAGE_META: Record<string, { title: string; subtitle: string }> = {
-  "/": { title: "Overview", subtitle: "Your financial pulse at a glance" },
-  "/revenue": { title: "Revenue", subtitle: "Growth, mix, and client concentration" },
-  "/cash-flow": { title: "Cash Flow", subtitle: "Inflows, outflows, and runway" },
-  "/receivables": { title: "Receivables", subtitle: "Outstanding invoices and aging" },
-  "/expenses": { title: "Expenses", subtitle: "Budget vs actual across categories" },
-  "/reports": { title: "Reports", subtitle: "Generate and export financial reports" },
-  "/settings": { title: "Settings", subtitle: "Workspace and display preferences" },
+const PAGE_META: Record<string, { titleKey: string; subtitleKey: string }> = {
+  "/": { titleKey: "page.overview.title", subtitleKey: "page.overview.subtitle" },
+  "/revenue": { titleKey: "page.revenue.title", subtitleKey: "page.revenue.subtitle" },
+  "/cash-flow": { titleKey: "page.cashFlow.title", subtitleKey: "page.cashFlow.subtitle" },
+  "/receivables": { titleKey: "page.receivables.title", subtitleKey: "page.receivables.subtitle" },
+  "/expenses": { titleKey: "page.expenses.title", subtitleKey: "page.expenses.subtitle" },
+  "/reports": { titleKey: "page.reports.title", subtitleKey: "page.reports.subtitle" },
+  "/settings": { titleKey: "page.settings.title", subtitleKey: "page.settings.subtitle" },
 };
 
-const RANGES: { key: DateRangeKey; label: string }[] = [
-  { key: "30d", label: "Last 30 days" },
-  { key: "quarter", label: "Last quarter" },
-  { key: "12m", label: "Last 12 months" },
-  { key: "ytd", label: "Year to date" },
+const RANGES: { key: DateRangeKey; labelKey: string }[] = [
+  { key: "30d", labelKey: "topbar.range.30d" },
+  { key: "quarter", labelKey: "topbar.range.quarter" },
+  { key: "12m", labelKey: "topbar.range.12m" },
+  { key: "ytd", labelKey: "topbar.range.ytd" },
 ];
 
 export function TopBar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { state, dispatch, alerts } = useFinance();
   const [openNotif, setOpenNotif] = useState(false);
-  const meta = PAGE_META[pathname] ?? { title: "FinBoard", subtitle: "" };
+  const t = useT();
+  const meta = PAGE_META[pathname];
+  const title = meta ? t(meta.titleKey) : "FinBoard";
+  const subtitle = meta ? t(meta.subtitleKey) : "";
+  const currentLang = LANGUAGES.find((l) => l.code === state.language) ?? LANGUAGES[0];
 
   return (
     <header className="sticky top-0 z-30 h-16 flex items-center gap-3 px-4 md:px-6 bg-background/80 backdrop-blur border-b border-border">
       <div className="min-w-0 flex-1">
-        <h1 className="text-base md:text-lg font-semibold tracking-tight truncate">{meta.title}</h1>
-        <p className="text-xs text-muted-foreground truncate">{meta.subtitle}</p>
+        <h1 className="text-base md:text-lg font-semibold tracking-tight truncate">{title}</h1>
+        <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
       </div>
 
       <DropdownMenu>
@@ -53,17 +58,39 @@ export function TopBar() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuLabel>Date range</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("topbar.dateRange")}</DropdownMenuLabel>
           {RANGES.map((r) => (
             <DropdownMenuItem
               key={r.key}
               onClick={() => dispatch({ type: "SET_RANGE", range: r.key })}
             >
-              {r.label}
+              {t(r.labelKey)}
             </DropdownMenuItem>
           ))}
           <DropdownMenuSeparator />
-          <DropdownMenuItem disabled>Custom range…</DropdownMenuItem>
+          <DropdownMenuItem disabled>{t("topbar.customRange")}</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" className="gap-1.5" aria-label={t("topbar.language")}>
+            <Languages className="h-3.5 w-3.5" />
+            <span className="text-xs font-medium uppercase">{currentLang.code}</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuLabel>{t("topbar.language")}</DropdownMenuLabel>
+          {LANGUAGES.map((l) => (
+            <DropdownMenuItem
+              key={l.code}
+              onClick={() => dispatch({ type: "SET_LANGUAGE", language: l.code as Language })}
+            >
+              <span className="mr-2">{l.flag}</span>
+              <span className="flex-1">{l.name}</span>
+              <span className="text-xs text-muted-foreground tabular uppercase">{l.code}</span>
+            </DropdownMenuItem>
+          ))}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -75,7 +102,7 @@ export function TopBar() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuLabel>Home currency</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("topbar.homeCurrency")}</DropdownMenuLabel>
           {ALL_CURRENCIES.map((c) => (
             <DropdownMenuItem
               key={c}
@@ -91,7 +118,7 @@ export function TopBar() {
 
       <DropdownMenu open={openNotif} onOpenChange={setOpenNotif}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
+          <Button variant="ghost" size="icon" className="relative" aria-label={t("topbar.notifications")}>
             <Bell className="h-4 w-4" />
             {alerts.length > 0 && (
               <Badge className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 bg-destructive text-destructive-foreground text-[10px]">
@@ -101,11 +128,11 @@ export function TopBar() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-80">
-          <DropdownMenuLabel>Alerts</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("topbar.alerts")}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {alerts.length === 0 && (
             <div className="px-3 py-6 text-center text-xs text-muted-foreground">
-              You're all caught up.
+              {t("topbar.allCaughtUp")}
             </div>
           )}
           {alerts.slice(0, 5).map((a) => (
@@ -120,7 +147,7 @@ export function TopBar() {
       <Button
         variant="ghost"
         size="icon"
-        aria-label="Toggle theme"
+        aria-label={t("topbar.toggleTheme")}
         onClick={() => dispatch({ type: "SET_THEME", theme: state.theme === "dark" ? "light" : "dark" })}
       >
         {state.theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
