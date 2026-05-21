@@ -12,20 +12,22 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/finance/i18n";
 
 const NAV = [
-  { to: "/", label: "Overview", icon: LayoutDashboard },
-  { to: "/revenue", label: "Revenue", icon: DollarSign },
-  { to: "/cash-flow", label: "Cash Flow", icon: Waves },
-  { to: "/receivables", label: "Receivables", icon: ClipboardList },
-  { to: "/expenses", label: "Expenses", icon: Wallet },
-  { to: "/reports", label: "Reports", icon: FileText },
-  { to: "/settings", label: "Settings", icon: Settings },
+  { to: "/", key: "nav.overview", icon: LayoutDashboard },
+  { to: "/revenue", key: "nav.revenue", icon: DollarSign },
+  { to: "/cash-flow", key: "nav.cashFlow", icon: Waves },
+  { to: "/receivables", key: "nav.receivables", icon: ClipboardList },
+  { to: "/expenses", key: "nav.expenses", icon: Wallet },
+  { to: "/reports", key: "nav.reports", icon: FileText },
+  { to: "/settings", key: "nav.settings", icon: Settings },
 ] as const;
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const t = useT();
 
   return (
     <aside
@@ -65,7 +67,7 @@ export function Sidebar() {
                 <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r bg-primary" />
               )}
               <Icon className="h-4 w-4 shrink-0" />
-              {!collapsed && <span className="truncate">{item.label}</span>}
+              {!collapsed && <span className="truncate">{t(item.key)}</span>}
             </Link>
           );
         })}
@@ -75,7 +77,7 @@ export function Sidebar() {
         className="mx-2 mb-3 flex items-center gap-2 rounded-md px-3 py-2 text-xs text-muted-foreground hover:bg-sidebar-accent/40 transition-colors"
       >
         {collapsed ? <ChevronsRight className="h-4 w-4" /> : <ChevronsLeft className="h-4 w-4" />}
-        {!collapsed && <span>Collapse</span>}
+        {!collapsed && <span>{t("sidebar.collapse")}</span>}
       </button>
     </aside>
   );
@@ -84,6 +86,7 @@ export function Sidebar() {
 export function MobileTabBar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const items = NAV.slice(0, 6);
+  const t = useT();
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-sidebar border-t border-sidebar-border flex justify-around py-1.5">
       {items.map((item) => {
@@ -99,7 +102,7 @@ export function MobileTabBar() {
             )}
           >
             <Icon className="h-4 w-4" />
-            <span>{item.label}</span>
+            <span>{t(item.key)}</span>
           </Link>
         );
       })}

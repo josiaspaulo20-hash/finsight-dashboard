@@ -10,20 +10,22 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import type { CurrencyCode } from "@/lib/finance/types";
+import { LANGUAGES, useT, type Language } from "@/lib/finance/i18n";
 
 export const Route = createFileRoute("/settings")({ component: SettingsPage });
 
 function SettingsPage() {
   const { state, dispatch } = useFinance();
+  const t = useT();
 
   return (
     <div className="space-y-6 max-w-3xl">
       <Card>
-        <h3 className="text-sm font-semibold mb-4">Company Profile</h3>
+        <h3 className="text-sm font-semibold mb-4">{t("settings.company")}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Company name"><Input defaultValue={COMPANY.name} /></Field>
-          <Field label="Industry"><Input defaultValue={COMPANY.industry} /></Field>
-          <Field label="Fiscal year start">
+          <Field label={t("settings.companyName")}><Input defaultValue={COMPANY.name} /></Field>
+          <Field label={t("settings.industry")}><Input defaultValue={COMPANY.industry} /></Field>
+          <Field label={t("settings.fiscalYear")}>
             <Select defaultValue={COMPANY.fiscalYearStart}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -31,7 +33,7 @@ function SettingsPage() {
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Base currency">
+          <Field label={t("settings.baseCurrency")}>
             <Select value={state.currency} onValueChange={(v) => dispatch({ type: "SET_CURRENCY", currency: v as CurrencyCode })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -43,12 +45,22 @@ function SettingsPage() {
       </Card>
 
       <Card>
-        <h3 className="text-sm font-semibold mb-4">Display Preferences</h3>
+        <h3 className="text-sm font-semibold mb-4">{t("settings.display")}</h3>
         <div className="space-y-3">
-          <ToggleRow label="Dark mode" description="Use true black surfaces and high contrast."
+          <ToggleRow label={t("settings.darkMode")} description={t("settings.darkModeDesc")}
             checked={state.theme === "dark"}
             onChange={(v) => dispatch({ type: "SET_THEME", theme: v ? "dark" : "light" })} />
-          <Field label="Date format">
+          <Field label={t("settings.language")}>
+            <Select value={state.language} onValueChange={(v) => dispatch({ type: "SET_LANGUAGE", language: v as Language })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {LANGUAGES.map((l) => (
+                  <SelectItem key={l.code} value={l.code}>{l.flag} {l.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label={t("settings.dateFormat")}>
             <Select defaultValue="DD/MM/YYYY">
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -58,7 +70,7 @@ function SettingsPage() {
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Number format">
+          <Field label={t("settings.numberFormat")}>
             <Select defaultValue="us">
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -71,7 +83,7 @@ function SettingsPage() {
       </Card>
 
       <Card>
-        <h3 className="text-sm font-semibold mb-4">Currencies & FX Rates</h3>
+        <h3 className="text-sm font-semibold mb-4">{t("settings.fx")}</h3>
         <table className="w-full text-xs">
           <thead><tr className="text-left text-muted-foreground border-b border-border">
             <th className="py-2">Currency</th><th className="py-2">Active</th><th className="py-2 text-right">Rate (1 USD = …)</th>
@@ -89,7 +101,7 @@ function SettingsPage() {
       </Card>
 
       <Card>
-        <h3 className="text-sm font-semibold mb-4">Notifications</h3>
+        <h3 className="text-sm font-semibold mb-4">{t("settings.notifications")}</h3>
         <div className="space-y-3">
           <ToggleRow label="Overdue invoice alerts" description="Notify when invoices pass 30, 60 or 90 days." defaultChecked />
           <ToggleRow label="Cash runway warnings" description="Notify when runway drops below 3 months." defaultChecked />
