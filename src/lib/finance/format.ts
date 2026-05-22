@@ -1,6 +1,14 @@
 import { CURRENCY_META, convert } from "./fx";
 import type { CurrencyCode } from "./types";
 
+let currentLocale = "en-US";
+export function setFormatLocale(locale: string) {
+  currentLocale = locale;
+}
+export function getFormatLocale() {
+  return currentLocale;
+}
+
 export function formatMoney(
   amount: number,
   currency: CurrencyCode,
@@ -11,9 +19,9 @@ export function formatMoney(
   const abs = Math.abs(amount);
   let body: string;
   if (opts.compact && abs >= 1000) {
-    body = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(abs);
+    body = new Intl.NumberFormat(currentLocale, { notation: "compact", maximumFractionDigits: 1 }).format(abs);
   } else {
-    body = new Intl.NumberFormat("en-US", {
+    body = new Intl.NumberFormat(currentLocale, {
       minimumFractionDigits: meta.decimals,
       maximumFractionDigits: meta.decimals,
     }).format(abs);
@@ -38,8 +46,12 @@ export function formatPct(pct: number, decimals = 1): string {
 }
 
 export function formatNumber(n: number, decimals = 0): string {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(currentLocale, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(n);
+}
+
+export function formatDate(d: Date, opts: Intl.DateTimeFormatOptions = { day: "2-digit", month: "short", year: "numeric" }): string {
+  return new Intl.DateTimeFormat(currentLocale, opts).format(d);
 }
