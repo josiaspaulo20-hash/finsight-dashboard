@@ -14,7 +14,306 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          company_id: string
+          contact_email: string | null
+          country: string | null
+          country_code: string | null
+          created_at: string
+          currency: string
+          flag: string | null
+          id: string
+          industry: string | null
+          is_retainer: boolean
+          monthly_revenue: number
+          name: string
+        }
+        Insert: {
+          company_id: string
+          contact_email?: string | null
+          country?: string | null
+          country_code?: string | null
+          created_at?: string
+          currency?: string
+          flag?: string | null
+          id?: string
+          industry?: string | null
+          is_retainer?: boolean
+          monthly_revenue?: number
+          name: string
+        }
+        Update: {
+          company_id?: string
+          contact_email?: string | null
+          country?: string | null
+          country_code?: string | null
+          created_at?: string
+          currency?: string
+          flag?: string | null
+          id?: string
+          industry?: string | null
+          is_retainer?: boolean
+          monthly_revenue?: number
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          base_currency: string
+          created_at: string
+          fiscal_year_start: number
+          id: string
+          industry: string | null
+          name: string
+        }
+        Insert: {
+          base_currency?: string
+          created_at?: string
+          fiscal_year_start?: number
+          id?: string
+          industry?: string | null
+          name: string
+        }
+        Update: {
+          base_currency?: string
+          created_at?: string
+          fiscal_year_start?: number
+          id?: string
+          industry?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
+      expense_categories: {
+        Row: {
+          actual: number
+          budget: number
+          category_key: string
+          company_id: string
+          created_at: string
+          id: string
+          month: number
+          name: string
+          year: number
+        }
+        Insert: {
+          actual?: number
+          budget?: number
+          category_key: string
+          company_id: string
+          created_at?: string
+          id?: string
+          month: number
+          name: string
+          year: number
+        }
+        Update: {
+          actual?: number
+          budget?: number
+          category_key?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          month?: number
+          name?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_categories_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          amount: number
+          client_id: string | null
+          company_id: string
+          created_at: string
+          currency: string
+          days_overdue: number
+          due_date: string
+          id: string
+          invoice_number: string
+          issue_date: string
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          client_id?: string | null
+          company_id: string
+          created_at?: string
+          currency?: string
+          days_overdue?: number
+          due_date: string
+          id?: string
+          invoice_number: string
+          issue_date: string
+          notes?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string | null
+          company_id?: string
+          created_at?: string
+          currency?: string
+          days_overdue?: number
+          due_date?: string
+          id?: string
+          invoice_number?: string
+          issue_date?: string
+          notes?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monthly_records: {
+        Row: {
+          cash_inflow: number
+          cash_outflow: number
+          closing_balance: number
+          company_id: string
+          created_at: string
+          expense_breakdown: Json
+          expenses: number
+          id: string
+          month: number
+          opening_balance: number
+          revenue: number
+          revenue_by_currency: Json
+          revenue_by_source: Json
+          year: number
+        }
+        Insert: {
+          cash_inflow?: number
+          cash_outflow?: number
+          closing_balance?: number
+          company_id: string
+          created_at?: string
+          expense_breakdown?: Json
+          expenses?: number
+          id?: string
+          month: number
+          opening_balance?: number
+          revenue?: number
+          revenue_by_currency?: Json
+          revenue_by_source?: Json
+          year: number
+        }
+        Update: {
+          cash_inflow?: number
+          cash_outflow?: number
+          closing_balance?: number
+          company_id?: string
+          created_at?: string
+          expense_breakdown?: Json
+          expenses?: number
+          id?: string
+          month?: number
+          opening_balance?: number
+          revenue?: number
+          revenue_by_currency?: Json
+          revenue_by_source?: Json
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_records_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          category: string
+          client_id: string | null
+          company_id: string
+          created_at: string
+          currency: string
+          date: string
+          description: string | null
+          id: string
+          status: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          client_id?: string | null
+          company_id: string
+          created_at?: string
+          currency?: string
+          date: string
+          description?: string | null
+          id?: string
+          status?: string
+          type: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          client_id?: string | null
+          company_id?: string
+          created_at?: string
+          currency?: string
+          date?: string
+          description?: string | null
+          id?: string
+          status?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
