@@ -1,6 +1,5 @@
 import { addDays, format } from "date-fns";
 import type {
-  Alert,
   Client,
   CurrencyCode,
   ExpenseBreakdown,
@@ -212,8 +211,20 @@ export function generateDailyBalance(monthIndex: number): { day: number; balance
   return out;
 }
 
-export function generateAlerts(invoices: Invoice[]): Alert[] {
-  const alerts: Alert[] = [];
+export type AlertSpec = {
+  id: string;
+  type: "receivables" | "cash" | "revenue" | "expenses";
+  severity: "danger" | "warning" | "success" | "info";
+  titleKey: string;
+  messageKey: string;
+  actionKey?: string;
+  actionLink: string;
+  params: Record<string, string | number>;
+  createdAt: string;
+};
+
+export function generateAlertSpecs(invoices: Invoice[]): AlertSpec[] {
+  const alerts: AlertSpec[] = [];
   const overdue = invoices.filter((i) => i.daysOverdue >= 45 && i.status !== "paid")
     .sort((a, b) => b.daysOverdue - a.daysOverdue);
   overdue.slice(0, 2).forEach((i) => {
@@ -222,9 +233,16 @@ export function generateAlerts(invoices: Invoice[]): Alert[] {
       id: `inv-${i.id}`,
       type: "receivables",
       severity: i.daysOverdue >= 90 ? "danger" : "warning",
-      title: `${i.invoiceNumber} is ${i.daysOverdue} days overdue`,
-      message: `${c?.name ?? "Client"} owes ${i.currency} ${i.amount.toLocaleString()} — ${c?.contactEmail ?? "no contact on file"}.`,
-      actionLabel: "Open receivables",
+      titleKey: "alert.invoiceOverdue.title",
+      messageKey: "alert.invoiceOverdue.msg",
+      actionKey: "alert.invoiceOverdue.action",
+      params: {
+        num: i.invoiceNumber,
+        days: i.daysOverdue,
+        name: c?.name ?? "Client",
+        amt: `${i.currency} ${i.amount.toLocaleString()}`,
+        contact: c?.contactEmail ?? "—",
+      },
       actionLink: "/receivables",
       createdAt: new Date().toISOString(),
     });
@@ -237,9 +255,10 @@ export function generateAlerts(invoices: Invoice[]): Alert[] {
       id: "cash-runway",
       type: "cash",
       severity: monthsCovered < 1 ? "danger" : "warning",
-      title: `Cash runway is ${monthsCovered.toFixed(1)} months`,
-      message: "Closing balance vs current monthly expenses. Consider accelerating receivables collection.",
-      actionLabel: "View cash flow",
+      titleKey: "alert.cashRunway.title",
+      messageKey: "alert.cashRunway.msg",
+      actionKey: "alert.cashRunway.action",
+      params: { months: monthsCovered.toFixed(1) },
       actionLink: "/cash-flow",
       createdAt: new Date().toISOString(),
     });
@@ -253,9 +272,10 @@ export function generateAlerts(invoices: Invoice[]): Alert[] {
       id: "q4-strong",
       type: "revenue",
       severity: "success",
-      title: `Q4 revenue is ${q4Delta.toFixed(0)}% above Q3`,
-      message: "Strongest quarter this fiscal year — lock in retainer renewals before year-end.",
-      actionLabel: "View revenue",
+      titleKey: "alert.q4Strong.title",
+      messageKey: "alert.q4Strong.msg",
+      actionKey: "alert.q4Strong.action",
+      params: { pct: q4Delta.toFixed(0) },
       actionLink: "/revenue",
       createdAt: new Date().toISOString(),
     });
@@ -265,9 +285,10 @@ export function generateAlerts(invoices: Invoice[]): Alert[] {
     id: "mkt-budget",
     type: "expenses",
     severity: "warning",
-    title: "Marketing exceeded budget by 18%",
-    message: "Brand campaign spend is the largest driver of overrun this period.",
-    actionLabel: "View expenses",
+    titleKey: "alert.mktBudget.title",
+    messageKey: "alert.mktBudget.msg",
+    actionKey: "alert.mktBudget.action",
+    params: {},
     actionLink: "/expenses",
     createdAt: new Date().toISOString(),
   });
