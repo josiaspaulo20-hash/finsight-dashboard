@@ -276,7 +276,7 @@ function OverviewPage() {
                   />
                 </div>
                 <div className="text-[10px] text-muted-foreground tabular text-right">
-                  {t.share.toFixed(1)}{t.share ? "" : ""}% {`· ${""}`}
+                  {t.share.toFixed(1)}%
                 </div>
               </li>
             ))}
