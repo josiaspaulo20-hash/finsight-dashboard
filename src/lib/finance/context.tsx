@@ -1,7 +1,9 @@
 import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
 import type { CurrencyCode, DateRangeKey, Invoice } from "./types";
-import { SEED_INVOICES, generateAlerts } from "./seed";
+import { SEED_INVOICES, generateAlertSpecs } from "./seed";
 import type { Language } from "./i18n";
+import { LOCALE, translate } from "./i18n";
+import { setActiveLocale } from "./format";
 
 interface State {
   currency: CurrencyCode;
@@ -67,7 +69,16 @@ function reducer(state: State, action: Action): State {
 interface Ctx {
   state: State;
   dispatch: React.Dispatch<Action>;
-  alerts: ReturnType<typeof generateAlerts>;
+  alerts: Array<{
+    id: string;
+    type: "receivables" | "cash" | "revenue" | "expenses";
+    severity: "danger" | "warning" | "success" | "info";
+    title: string;
+    message: string;
+    actionLabel?: string;
+    actionLink: string;
+    createdAt: string;
+  }>;
 }
 
 const FinanceContext = createContext<Ctx | null>(null);
@@ -102,12 +113,24 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === "undefined") return;
     localStorage.setItem("finboard.language", state.language);
     document.documentElement.lang = state.language;
+    setActiveLocale(LOCALE[state.language]);
   }, [state.language]);
 
-  const alerts = useMemo(
-    () => generateAlerts(state.invoices).filter((a) => !state.dismissedAlerts.includes(a.id)),
-    [state.invoices, state.dismissedAlerts],
-  );
+  const alerts = useMemo(() => {
+    const specs = generateAlertSpecs(state.invoices);
+    return specs
+      .filter((a) => !state.dismissedAlerts.includes(a.id))
+      .map((a) => ({
+        id: a.id,
+        type: a.type,
+        severity: a.severity,
+        actionLink: a.actionLink,
+        createdAt: a.createdAt,
+        title: translate(state.language, a.titleKey, a.params),
+        message: translate(state.language, a.messageKey, a.params),
+        actionLabel: a.actionKey ? translate(state.language, a.actionKey) : undefined,
+      }));
+  }, [state.invoices, state.dismissedAlerts, state.language]);
 
   const value = useMemo(() => ({ state, dispatch, alerts }), [state, alerts]);
   return <FinanceContext.Provider value={value}>{children}</FinanceContext.Provider>;

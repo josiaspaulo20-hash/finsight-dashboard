@@ -1,6 +1,18 @@
 import { CURRENCY_META, convert } from "./fx";
 import type { CurrencyCode } from "./types";
 
+// Module-level locale kept in sync with the language context.
+// Initialized to "en-US" so SSR matches the client's initial state before hydration.
+let CURRENT_LOCALE = "en-US";
+
+export function setActiveLocale(locale: string) {
+  CURRENT_LOCALE = locale;
+}
+
+export function getActiveLocale() {
+  return CURRENT_LOCALE;
+}
+
 export function formatMoney(
   amount: number,
   currency: CurrencyCode,
@@ -11,9 +23,9 @@ export function formatMoney(
   const abs = Math.abs(amount);
   let body: string;
   if (opts.compact && abs >= 1000) {
-    body = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(abs);
+    body = new Intl.NumberFormat(CURRENT_LOCALE, { notation: "compact", maximumFractionDigits: 1 }).format(abs);
   } else {
-    body = new Intl.NumberFormat("en-US", {
+    body = new Intl.NumberFormat(CURRENT_LOCALE, {
       minimumFractionDigits: meta.decimals,
       maximumFractionDigits: meta.decimals,
     }).format(abs);
@@ -38,7 +50,7 @@ export function formatPct(pct: number, decimals = 1): string {
 }
 
 export function formatNumber(n: number, decimals = 0): string {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(CURRENT_LOCALE, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(n);
