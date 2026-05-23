@@ -69,7 +69,16 @@ function reducer(state: State, action: Action): State {
 interface Ctx {
   state: State;
   dispatch: React.Dispatch<Action>;
-  alerts: ReturnType<typeof generateAlerts>;
+  alerts: Array<{
+    id: string;
+    type: "receivables" | "cash" | "revenue" | "expenses";
+    severity: "danger" | "warning" | "success" | "info";
+    title: string;
+    message: string;
+    actionLabel?: string;
+    actionLink: string;
+    createdAt: string;
+  }>;
 }
 
 const FinanceContext = createContext<Ctx | null>(null);
