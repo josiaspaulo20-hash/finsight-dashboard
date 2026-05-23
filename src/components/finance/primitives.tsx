@@ -3,6 +3,7 @@ import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import type { CurrencyCode, InvoiceStatus } from "@/lib/finance/types";
 import { useFinance } from "@/lib/finance/context";
 import { formatConverted, formatMoney, formatPct } from "@/lib/finance/format";
+import { useT } from "@/lib/finance/i18n";
 
 export function Section({
   title,
@@ -140,15 +141,16 @@ const STATUS_STYLES: Record<InvoiceStatus, string> = {
   critical: "bg-destructive/15 text-destructive border-destructive/20",
 };
 
-const STATUS_LABEL: Record<InvoiceStatus, string> = {
-  paid: "Paid",
-  pending: "Pending",
-  late: "Late",
-  overdue: "Overdue",
-  critical: "Critical",
+const STATUS_KEY: Record<InvoiceStatus, string> = {
+  paid: "status.paid",
+  pending: "status.pending",
+  late: "status.late",
+  overdue: "status.overdue",
+  critical: "status.critical",
 };
 
 export function StatusBadge({ status }: { status: InvoiceStatus }) {
+  const t = useT();
   return (
     <span
       className={cn(
@@ -156,7 +158,7 @@ export function StatusBadge({ status }: { status: InvoiceStatus }) {
         STATUS_STYLES[status],
       )}
     >
-      {STATUS_LABEL[status]}
+      {t(STATUS_KEY[status])}
     </span>
   );
 }
