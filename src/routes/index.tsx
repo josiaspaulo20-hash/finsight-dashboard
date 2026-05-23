@@ -32,6 +32,7 @@ import { formatConverted, formatMoney, formatPct } from "@/lib/finance/format";
 import { Card, DeltaBadge, KPICard, Section } from "@/components/finance/primitives";
 import { MoneyTooltip } from "@/components/finance/ChartTooltip";
 import { cn } from "@/lib/utils";
+import { useT, useMonthShort, useDistanceToNow } from "@/lib/finance/i18n";
 
 export const Route = createFileRoute("/")({
   component: OverviewPage,
@@ -48,6 +49,9 @@ const CHART_COLORS = [
 function OverviewPage() {
   const { state, alerts, dispatch } = useFinance();
   const home = state.currency;
+  const t = useT();
+  const tMonth = useMonthShort();
+  const dist = useDistanceToNow();
 
   const last = MONTHLY[MONTHLY.length - 1];
   const prev = MONTHLY[MONTHLY.length - 2];
@@ -77,9 +81,9 @@ function OverviewPage() {
   const expenseRatio = (opex / last.revenue) * 100;
   const expenseDelta = ((last.expenses - prev.expenses) / prev.expenses) * 100;
 
-  const sparkRevenue = MONTHLY.slice(-7).map((m) => ({ label: m.label, value: m.revenue }));
+  const sparkRevenue = MONTHLY.slice(-7).map((m) => ({ label: tMonth(m.label), value: m.revenue }));
 
-  const revenueMix = Object.entries(last.revenueBySource).map(([k, v]) => ({ name: k, value: v }));
+  const revenueMix = Object.entries(last.revenueBySource).map(([k, v]) => ({ name: t(`src.${k}`), value: v }));
   const totalMix = revenueMix.reduce((s, r) => s + r.value, 0);
 
   const topClients = useMemo(() => {
@@ -99,10 +103,10 @@ function OverviewPage() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KPICard
-          label="Total Revenue"
+          label={t("kpi.totalRevenue")}
           value={formatConverted(totalRevenue, "USD", home, { compact: true })}
           delta={revenueDelta}
-          subtitle={`Across all currencies, converted to ${home}`}
+          subtitle={t("kpi.acrossAllCcy", { ccy: home })}
           spark={
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={sparkRevenue} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
@@ -124,20 +128,20 @@ function OverviewPage() {
           }
         />
         <KPICard
-          label="Net Cash Position"
+          label={t("kpi.netCashPosition")}
           value={formatConverted(closingBalance, "USD", home, { compact: true })}
           tone={monthsRunway >= 3 ? "success" : monthsRunway >= 1 ? "warning" : "danger"}
           subtitle={
             <span>
-              <span className="font-medium tabular text-foreground">{monthsRunway.toFixed(1)}</span> months
-              of expenses covered
+              <span className="font-medium tabular text-foreground">{monthsRunway.toFixed(1)}</span>{" "}
+              {t("kpi.monthsCovered")}
             </span>
           }
         />
         <KPICard
-          label="Outstanding Receivables"
+          label={t("kpi.outstandingReceivables")}
           value={formatConverted(outstandingUsd, "USD", home, { compact: true })}
-          subtitle={`${openCount} invoices · ${overdueCount} overdue`}
+          subtitle={`${openCount} ${t("kpi.invoices")} · ${overdueCount} ${t("kpi.overdueShort")}`}
           tone={criticalCount > 0 ? "danger" : overdueCount > 0 ? "warning" : "success"}
           badge={
             <span
@@ -150,18 +154,18 @@ function OverviewPage() {
                     : "bg-success/15 text-success",
               )}
             >
-              {criticalCount > 0 ? "Critical" : overdueCount > 0 ? "At risk" : "Healthy"}
+              {criticalCount > 0 ? t("kpi.critical") : overdueCount > 0 ? t("kpi.atRisk") : t("kpi.healthy")}
             </span>
           }
         />
         <KPICard
-          label="Operating Expenses"
+          label={t("kpi.operatingExpenses")}
           value={formatConverted(opex, "USD", home, { compact: true })}
           delta={expenseDelta}
           subtitle={
             <span>
-              <span className="font-medium text-foreground tabular">{expenseRatio.toFixed(1)}%</span> of
-              current revenue
+              <span className="font-medium text-foreground tabular">{expenseRatio.toFixed(1)}%</span>{" "}
+              {t("kpi.ofCurrentRevenue")}
             </span>
           }
         />
@@ -171,20 +175,20 @@ function OverviewPage() {
         <Card className="lg:col-span-3">
           <div className="flex items-end justify-between mb-4">
             <div>
-              <h2 className="text-sm font-semibold">Revenue vs Expenses</h2>
-              <p className="text-xs text-muted-foreground">Last 12 months · gross margin overlay</p>
+              <h2 className="text-sm font-semibold">{t("card.revenueVsExpenses")}</h2>
+              <p className="text-xs text-muted-foreground">{t("card.revenueVsExpensesSub")}</p>
             </div>
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <Legend swatch="var(--color-primary)" label="Revenue" />
-              <Legend swatch="var(--color-destructive)" label="Expenses" />
-              <Legend swatch="var(--color-success)" label="Margin %" dashed />
+              <Legend swatch="var(--color-primary)" label={t("card.revenue")} />
+              <Legend swatch="var(--color-destructive)" label={t("card.expenses")} />
+              <Legend swatch="var(--color-success)" label={t("card.marginPct")} dashed />
             </div>
           </div>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
                 data={MONTHLY.map((m) => ({
-                  label: m.label,
+                  label: tMonth(m.label),
                   Revenue: m.revenue,
                   Expenses: m.expenses,
                   Margin: m.grossMargin,
@@ -206,8 +210,8 @@ function OverviewPage() {
 
         <Card className="lg:col-span-2 flex flex-col">
           <div className="mb-2">
-            <h2 className="text-sm font-semibold">Revenue Mix</h2>
-            <p className="text-xs text-muted-foreground">Current month by source</p>
+            <h2 className="text-sm font-semibold">{t("card.revenueMix")}</h2>
+            <p className="text-xs text-muted-foreground">{t("card.revenueMixSub")}</p>
           </div>
           <div className="relative h-56">
             <ResponsiveContainer width="100%" height="100%">
@@ -229,7 +233,7 @@ function OverviewPage() {
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Total</span>
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("card.total")}</span>
               <span className="text-lg font-semibold tabular">
                 {formatConverted(totalMix, "USD", home, { compact: true })}
               </span>
@@ -252,7 +256,7 @@ function OverviewPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card>
-          <h3 className="text-sm font-semibold mb-3">Top 5 Clients by Revenue</h3>
+          <h3 className="text-sm font-semibold mb-3">{t("card.topClients")}</h3>
           <ul className="space-y-3">
             {topClients.map((t) => (
               <li key={t.client.id} className="space-y-1">
@@ -272,7 +276,7 @@ function OverviewPage() {
                   />
                 </div>
                 <div className="text-[10px] text-muted-foreground tabular text-right">
-                  {t.share.toFixed(1)}% of top 5
+                  {t.share.toFixed(1)}{t.share ? "" : ""}% {`· ${""}`}
                 </div>
               </li>
             ))}
@@ -280,7 +284,7 @@ function OverviewPage() {
         </Card>
 
         <Card>
-          <h3 className="text-sm font-semibold mb-3">Recent Activity</h3>
+          <h3 className="text-sm font-semibold mb-3">{t("card.recentActivity")}</h3>
           <ul className="divide-y divide-border -mx-2">
             {RECENT_TRANSACTIONS.slice(0, 8).map((t) => {
               const c = t.clientId ? clientById(t.clientId) : null;
@@ -300,7 +304,7 @@ function OverviewPage() {
                     <div className="text-xs font-medium truncate">{t.description}</div>
                     <div className="text-[11px] text-muted-foreground">
                       {c ? `${c.flag} ${c.name} · ` : ""}
-                      {formatDistanceToNow(parseISO(t.date), { addSuffix: true })}
+                      {dist(t.date)}
                     </div>
                   </div>
                   <div className="text-xs tabular text-right">
@@ -317,12 +321,12 @@ function OverviewPage() {
 
         <Card>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold">Smart Alerts</h3>
+            <h3 className="text-sm font-semibold">{t("card.smartAlerts")}</h3>
             <Bell className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
           <ul className="space-y-2">
             {alerts.length === 0 && (
-              <li className="text-xs text-muted-foreground py-6 text-center">No active alerts.</li>
+              <li className="text-xs text-muted-foreground py-6 text-center">{t("common.noAlerts")}</li>
             )}
             {alerts.map((a) => {
               const Icon =
