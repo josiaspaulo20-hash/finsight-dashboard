@@ -1,4 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useRef } from "react";
+import { Download, Upload } from "lucide-react";
+import { toast } from "sonner";
 import { useFinance } from "@/lib/finance/context";
 import { ALL_CURRENCIES, CURRENCY_META, FX_RATES } from "@/lib/finance/fx";
 import { COMPANY } from "@/lib/finance/seed";
@@ -6,25 +9,104 @@ import { Card } from "@/components/finance/primitives";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import type { CurrencyCode } from "@/lib/finance/types";
 import { LANGUAGES, useT, type Language } from "@/lib/finance/i18n";
+import { validateSnapshot } from "@/lib/finance/companies";
 
 export const Route = createFileRoute("/settings")({ component: SettingsPage });
 
 function SettingsPage() {
-  const { state, dispatch } = useFinance();
+  const { state, dispatch, activeCompany, exportSnapshot, importSnapshot, online } = useFinance();
   const t = useT();
+  const fileInput = useRef<HTMLInputElement | null>(null);
+
+  function handleExport() {
+    const snap = exportSnapshot();
+    if (!snap) {
+      toast.error("No active company to export");
+      return;
+    }
+    const blob = new Blob([JSON.stringify(snap, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const safe = (activeCompany?.name ?? "finboard").replace(/[^a-z0-9-_]+/gi, "-").toLowerCase();
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${safe}-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Exported company snapshot");
+  }
+
+  async function handleImportFile(file: File) {
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      if (!validateSnapshot(parsed)) {
+        toast.error("Invalid snapshot file");
+        return;
+      }
+      const baseName = parsed.profile.name || file.name.replace(/\.json$/i, "");
+      const name = window.prompt("Import as company name:", `${baseName} (imported)`);
+      if (!name) return;
+      await importSnapshot(name.trim(), parsed);
+      toast.success(`Imported as “${name.trim()}”`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not import file");
+    }
+  }
 
   return (
     <div className="space-y-6 max-w-3xl">
       <Card>
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h3 className="text-sm font-semibold">Data Portability</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Export the active company as JSON or import a previously exported file as a new company.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleExport} disabled={!activeCompany}>
+              <Download className="h-3.5 w-3.5 mr-1.5" /> Export
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fileInput.current?.click()}
+              disabled={!online}
+              title={online ? "" : "Import requires connection"}
+            >
+              <Upload className="h-3.5 w-3.5 mr-1.5" /> Import
+            </Button>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleImportFile(f);
+                e.target.value = "";
+              }}
+            />
+          </div>
+        </div>
+      </Card>
+
+      <Card>
         <h3 className="text-sm font-semibold mb-4">{t("settings.company")}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label={t("settings.companyName")}><Input defaultValue={COMPANY.name} /></Field>
-          <Field label={t("settings.industry")}><Input defaultValue={COMPANY.industry} /></Field>
+          <Field label={t("settings.companyName")}>
+            <Input defaultValue={activeCompany?.name ?? COMPANY.name} key={activeCompany?.id ?? "none"} />
+          </Field>
+          <Field label={t("settings.industry")}>
+            <Input defaultValue={activeCompany?.industry ?? COMPANY.industry} key={activeCompany?.id ?? "none"} />
+          </Field>
           <Field label={t("settings.fiscalYear")}>
             <Select defaultValue={COMPANY.fiscalYearStart}>
               <SelectTrigger><SelectValue /></SelectTrigger>
