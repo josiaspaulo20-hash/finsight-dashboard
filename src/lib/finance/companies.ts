@@ -80,7 +80,7 @@ export async function createCompany(
       base_currency: snapshot.profile.baseCurrency,
       fiscal_year_start: 1,
       is_sample: kind === "sample",
-      data: snapshot as unknown as Record<string, unknown>,
+      data: snapshot as never,
     })
     .select("*")
     .single();
@@ -92,7 +92,7 @@ export async function saveSnapshot(id: string, snapshot: CompanySnapshot): Promi
   const { error } = await supabase
     .from("companies")
     .update({
-      data: snapshot as unknown as Record<string, unknown>,
+      data: snapshot as never,
       name: snapshot.profile.name,
       industry: snapshot.profile.industry,
       base_currency: snapshot.profile.baseCurrency,
@@ -125,7 +125,7 @@ export async function importCompany(
       base_currency: clean.profile.baseCurrency,
       fiscal_year_start: 1,
       is_sample: false,
-      data: clean as unknown as Record<string, unknown>,
+      data: clean as never,
     })
     .select("*")
     .single();
