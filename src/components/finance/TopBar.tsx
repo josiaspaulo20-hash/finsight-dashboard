@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CompanySwitcher } from "./CompanySwitcher";
 
 const PAGE_META: Record<string, { titleKey: string; subtitleKey: string }> = {
   "/": { titleKey: "page.overview.title", subtitleKey: "page.overview.subtitle" },
@@ -49,6 +50,8 @@ export function TopBar() {
         <h1 className="text-base md:text-lg font-semibold tracking-tight truncate">{title}</h1>
         <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
       </div>
+
+      <CompanySwitcher />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

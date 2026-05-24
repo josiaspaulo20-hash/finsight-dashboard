@@ -71,25 +71,31 @@ export type Database = {
         Row: {
           base_currency: string
           created_at: string
+          data: Json
           fiscal_year_start: number
           id: string
           industry: string | null
+          is_sample: boolean
           name: string
         }
         Insert: {
           base_currency?: string
           created_at?: string
+          data?: Json
           fiscal_year_start?: number
           id?: string
           industry?: string | null
+          is_sample?: boolean
           name: string
         }
         Update: {
           base_currency?: string
           created_at?: string
+          data?: Json
           fiscal_year_start?: number
           id?: string
           industry?: string | null
+          is_sample?: boolean
           name?: string
         }
         Relationships: []
