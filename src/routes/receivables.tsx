@@ -74,7 +74,7 @@ function ReceivablesPage() {
     return { ...b, label: t(b.labelKey), count: inv.length, usd };
   });
 
-  const donutData = totals.map((t) => ({ name: t.label, value: t.usd, color: t.color }));
+  const donutData = totals.map((b) => ({ name: b.label, value: b.usd, color: b.color }));
 
   const collectionTrend = MONTHLY.slice(-6).map((m, idx) => {
     const raised = Math.round(m.revenue * 1.02);
@@ -161,11 +161,11 @@ function ReceivablesPage() {
             </ResponsiveContainer>
           </div>
           <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
-            {totals.map((t) => (
-              <li key={t.key} className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-sm" style={{ background: t.color }} />
-                <span className="flex-1 truncate text-muted-foreground">{t.label}</span>
-                <span className="tabular">{t.count}</span>
+            {totals.map((b) => (
+              <li key={b.key} className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-sm" style={{ background: b.color }} />
+                <span className="flex-1 truncate text-muted-foreground">{b.label}</span>
+                <span className="tabular">{b.count}</span>
               </li>
             ))}
           </ul>
