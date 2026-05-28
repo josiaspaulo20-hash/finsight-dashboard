@@ -23,6 +23,7 @@ import { useFinance } from "@/lib/finance/context";
 import { CLIENTS, MONTHLY } from "@/lib/finance/seed";
 import { ALL_CURRENCIES, convert } from "@/lib/finance/fx";
 import { formatConverted, formatMoney, formatNumber } from "@/lib/finance/format";
+import { useT, useMonthShort } from "@/lib/finance/i18n";
 import { Card, DeltaBadge, Section } from "@/components/finance/primitives";
 import { MoneyTooltip, NativeTooltip } from "@/components/finance/ChartTooltip";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,8 @@ type ChartKind = "area" | "line" | "bar";
 
 function RevenuePage() {
   const { state } = useFinance();
+  const t = useT();
+  const mShort = useMonthShort();
   const home = state.currency;
   const [kind, setKind] = useState<ChartKind>("area");
   const [search, setSearch] = useState("");
@@ -51,12 +54,12 @@ function RevenuePage() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [originalCcy, setOriginalCcy] = useState(false);
 
-  const chartData = MONTHLY.map((m) => ({ label: m.label, Revenue: m.revenue }));
+  const chartData = MONTHLY.map((m) => ({ label: mShort(m.label), Revenue: m.revenue }));
   const maxMonth = chartData.reduce((a, b) => (a.Revenue > b.Revenue ? a : b));
   const minMonth = chartData.reduce((a, b) => (a.Revenue < b.Revenue ? a : b));
 
   const last = MONTHLY[MONTHLY.length - 1];
-  const revenueMix = Object.entries(last.revenueBySource).map(([k, v]) => ({ name: k, value: v }));
+  const revenueMix = Object.entries(last.revenueBySource).map(([k, v]) => ({ name: k, label: t(`src.${k}`), value: v }));
   const totalMix = revenueMix.reduce((s, r) => s + r.value, 0);
 
   const mixTable = useMemo(() => {
@@ -71,14 +74,14 @@ function RevenuePage() {
   const stackedData = useMemo(
     () =>
       MONTHLY.map((m) => {
-        const row: Record<string, number | string> = { label: m.label };
+        const row: Record<string, number | string> = { label: mShort(m.label) };
         ALL_CURRENCIES.forEach((c) => {
           const native = m.revenueByCurrency[c];
           row[c] = originalCcy ? native : convert(native, c, home);
         });
         return row;
       }),
-    [home, originalCcy],
+    [home, originalCcy, mShort],
   );
 
   // Client table
@@ -114,8 +117,8 @@ function RevenuePage() {
       <Card>
         <div className="flex flex-wrap items-end justify-between gap-2 mb-4">
           <div>
-            <h2 className="text-sm font-semibold">Revenue Over Time</h2>
-            <p className="text-xs text-muted-foreground">12 months · brushable date range</p>
+            <h2 className="text-sm font-semibold">{t("card.revenueOverTime")}</h2>
+            <p className="text-xs text-muted-foreground">{t("card.revenueOverTimeSub")}</p>
           </div>
           <div className="inline-flex rounded-md border border-border p-0.5 text-xs">
             {(["area", "line", "bar"] as ChartKind[]).map((k) => (
@@ -176,11 +179,11 @@ function RevenuePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
-          <h3 className="text-sm font-semibold mb-3">Revenue by Source</h3>
+          <h3 className="text-sm font-semibold mb-3">{t("card.revenueBySource")}</h3>
           <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={revenueMix} dataKey="value" innerRadius={50} outerRadius={80} paddingAngle={2} stroke="var(--color-background)" strokeWidth={2}>
+                <Pie data={revenueMix} dataKey="value" nameKey="label" innerRadius={50} outerRadius={80} paddingAngle={2} stroke="var(--color-background)" strokeWidth={2}>
                   {revenueMix.map((_, i) => (
                     <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                   ))}
@@ -192,10 +195,10 @@ function RevenuePage() {
           <table className="w-full text-xs mt-4">
             <thead>
               <tr className="text-left text-muted-foreground border-b border-border">
-                <th className="py-2 font-medium">Source</th>
-                <th className="py-2 font-medium text-right">Amount</th>
-                <th className="py-2 font-medium text-right">% Total</th>
-                <th className="py-2 font-medium text-right">MoM</th>
+                <th className="py-2 font-medium">{t("common.source")}</th>
+                <th className="py-2 font-medium text-right">{t("common.amount")}</th>
+                <th className="py-2 font-medium text-right">{t("common.percent")}</th>
+                <th className="py-2 font-medium text-right">{t("common.mom")}</th>
               </tr>
             </thead>
             <tbody>
@@ -203,7 +206,7 @@ function RevenuePage() {
                 <tr key={r.name} className={i % 2 === 1 ? "bg-muted/40" : ""}>
                   <td className="py-2 flex items-center gap-1.5">
                     <span className="h-2 w-2 rounded-sm" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
-                    {r.name}
+                    {t(`src.${r.name}`)}
                   </td>
                   <td className="py-2 text-right tabular">{formatConverted(r.value, "USD", home, { compact: true })}</td>
                   <td className="py-2 text-right tabular">{r.pct.toFixed(1)}%</td>
@@ -216,10 +219,10 @@ function RevenuePage() {
 
         <Card>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold">Revenue by Currency</h3>
+            <h3 className="text-sm font-semibold">{t("card.revenueByCurrency")}</h3>
             <div className="inline-flex rounded-md border border-border p-0.5 text-[11px]">
-              <button onClick={() => setOriginalCcy(false)} className={cn("px-2 py-1 rounded", !originalCcy ? "bg-primary text-primary-foreground" : "text-muted-foreground")}>Converted</button>
-              <button onClick={() => setOriginalCcy(true)} className={cn("px-2 py-1 rounded", originalCcy ? "bg-primary text-primary-foreground" : "text-muted-foreground")}>Original</button>
+              <button onClick={() => setOriginalCcy(false)} className={cn("px-2 py-1 rounded", !originalCcy ? "bg-primary text-primary-foreground" : "text-muted-foreground")}>{t("card.converted")}</button>
+              <button onClick={() => setOriginalCcy(true)} className={cn("px-2 py-1 rounded", originalCcy ? "bg-primary text-primary-foreground" : "text-muted-foreground")}>{t("card.original")}</button>
             </div>
           </div>
           <div className="h-72">
@@ -249,15 +252,15 @@ function RevenuePage() {
       <Card>
         <div className="flex flex-wrap items-end justify-between gap-2 mb-3">
           <div>
-            <h3 className="text-sm font-semibold">Client Revenue</h3>
-            <p className="text-xs text-muted-foreground">Sortable, searchable. Click a row to expand.</p>
+            <h3 className="text-sm font-semibold">{t("card.clientRevenue")}</h3>
+            <p className="text-xs text-muted-foreground">{t("card.clientRevenueSub")}</p>
           </div>
           <div className="relative w-64">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-              placeholder="Search clients or industries"
+              placeholder={t("card.searchClients")}
               className="pl-7 h-8 text-xs"
             />
           </div>
@@ -268,19 +271,19 @@ function RevenuePage() {
             <thead className="sticky top-0 bg-card z-10">
               <tr className="text-left text-muted-foreground border-b border-border">
                 <th className="py-2 pr-2 font-medium">#</th>
-                <th className="py-2 pr-2 font-medium">Client</th>
-                <th className="py-2 pr-2 font-medium">Industry</th>
-                <th className="py-2 pr-2 font-medium">Ccy</th>
-                <th className="py-2 pr-2 font-medium text-right">Annual (Original)</th>
-                <th className="py-2 pr-2 font-medium text-right">Annual ({home})</th>
-                <th className="py-2 pr-2 font-medium text-right">% Total</th>
-                <th className="py-2 pr-2 font-medium text-right">vs Prev Mo</th>
-                <th className="py-2 pr-2 font-medium">Trend</th>
+                <th className="py-2 pr-2 font-medium">{t("common.client")}</th>
+                <th className="py-2 pr-2 font-medium">{t("common.industry")}</th>
+                <th className="py-2 pr-2 font-medium">{t("common.ccy")}</th>
+                <th className="py-2 pr-2 font-medium text-right">{`${t("common.amount")} (${t("card.original")})`}</th>
+                <th className="py-2 pr-2 font-medium text-right">{`${t("common.amount")} (${home})`}</th>
+                <th className="py-2 pr-2 font-medium text-right">{t("common.percent")}</th>
+                <th className="py-2 pr-2 font-medium text-right">{t("common.mom")}</th>
+                <th className="py-2 pr-2 font-medium">{t("common.trend")}</th>
               </tr>
             </thead>
             <tbody>
               {pageRows.length === 0 && (
-                <tr><td colSpan={9} className="py-6 text-center text-muted-foreground">No clients match your search.</td></tr>
+                <tr><td colSpan={9} className="py-6 text-center text-muted-foreground">{t("common.noClientsMatch")}</td></tr>
               )}
               {pageRows.map((r, i) => (
                 <>
@@ -310,11 +313,11 @@ function RevenuePage() {
                   {expanded === r.client.id && (
                     <tr className="bg-muted/30">
                       <td colSpan={9} className="px-4 py-3">
-                        <div className="text-xs text-muted-foreground mb-2">Monthly revenue ({r.client.currency} native)</div>
+                        <div className="text-xs text-muted-foreground mb-2">{t("card.revenueOverTime")} ({r.client.currency})</div>
                         <div className="grid grid-cols-12 gap-1.5">
                           {r.monthly.map((v, i) => (
                             <div key={i} className="text-center">
-                              <div className="text-[10px] text-muted-foreground">{MONTHLY[i].label}</div>
+                              <div className="text-[10px] text-muted-foreground">{mShort(MONTHLY[i].label)}</div>
                               <div className="text-xs font-medium tabular">{formatMoney(v, r.client.currency, { compact: true })}</div>
                             </div>
                           ))}
@@ -330,11 +333,11 @@ function RevenuePage() {
 
         <div className="flex items-center justify-between mt-3 text-xs">
           <span className="text-muted-foreground">
-            {filtered.length === 0 ? "0 results" : `Showing ${page * pageSize + 1}–${Math.min(filtered.length, (page + 1) * pageSize)} of ${filtered.length}`}
+            {filtered.length === 0 ? t("common.nResults_zero") : `${t("common.showing")} ${page * pageSize + 1}–${Math.min(filtered.length, (page + 1) * pageSize)} ${t("common.of")} ${filtered.length}`}
           </span>
           <div className="flex gap-1">
-            <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Previous</Button>
-            <Button variant="outline" size="sm" disabled={page >= pageCount - 1} onClick={() => setPage((p) => p + 1)}>Next</Button>
+            <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>{t("common.previous")}</Button>
+            <Button variant="outline" size="sm" disabled={page >= pageCount - 1} onClick={() => setPage((p) => p + 1)}>{t("common.next")}</Button>
           </div>
         </div>
       </Card>
