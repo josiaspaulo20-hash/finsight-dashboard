@@ -18,6 +18,7 @@ import { AlertTriangle, Briefcase, Cpu, FileText, HandCoins, Home, Megaphone, Pl
 import { useFinance } from "@/lib/finance/context";
 import { MONTHLY, generateDailyBalance } from "@/lib/finance/seed";
 import { formatConverted, formatMoney } from "@/lib/finance/format";
+import { useT, useMonthShort } from "@/lib/finance/i18n";
 import { Card, KPICard } from "@/components/finance/primitives";
 import { MoneyTooltip } from "@/components/finance/ChartTooltip";
 import { cn } from "@/lib/utils";
@@ -33,12 +34,14 @@ export const Route = createFileRoute("/cash-flow")({ component: CashFlowPage });
 
 function CashFlowPage() {
   const { state, dispatch } = useFinance();
+  const t = useT();
+  const mShort = useMonthShort();
   const home = state.currency;
   const m = MONTHLY[state.activeMonth];
   const [drill, setDrill] = useState<number | null>(null);
 
   const waterfall = MONTHLY.map((mm) => ({
-    label: mm.label,
+    label: mShort(mm.label),
     Inflow: mm.cashInflow,
     Outflow: -mm.cashOutflow,
     Net: mm.cashInflow - mm.cashOutflow,
@@ -54,37 +57,37 @@ function CashFlowPage() {
   const shortfall = projClosing < m.expenses * 0.15;
 
   const inflowItems = [
-    { label: "Client Payments", value: m.cashInflow * 0.96, icon: HandCoins, color: "text-success" },
-    { label: "Interest", value: m.cashInflow * 0.02, icon: ShieldCheck, color: "text-info" },
-    { label: "Other", value: m.cashInflow * 0.02, icon: FileText, color: "text-muted-foreground" },
+    { label: t("cf.clientPayments"), value: m.cashInflow * 0.96, icon: HandCoins, color: "text-success" },
+    { label: t("cf.interest"), value: m.cashInflow * 0.02, icon: ShieldCheck, color: "text-info" },
+    { label: t("cf.other"), value: m.cashInflow * 0.02, icon: FileText, color: "text-muted-foreground" },
   ];
   const outflowItems = [
-    { label: "Payroll", value: m.expenseBreakdown.payroll, icon: Users, color: "text-destructive" },
-    { label: "Rent", value: Math.round(m.expenseBreakdown.operations * 0.5), icon: Home, color: "text-destructive" },
-    { label: "Software", value: m.expenseBreakdown.software, icon: Cpu, color: "text-destructive" },
-    { label: "Marketing", value: m.expenseBreakdown.marketing, icon: Megaphone, color: "text-destructive" },
-    { label: "Tax", value: Math.round(m.expenses * 0.06), icon: Receipt, color: "text-destructive" },
-    { label: "Other", value: m.expenseBreakdown.other + m.expenseBreakdown.travel + m.expenseBreakdown.professional, icon: Briefcase, color: "text-muted-foreground" },
+    { label: t("cf.payroll"), value: m.expenseBreakdown.payroll, icon: Users, color: "text-destructive" },
+    { label: t("cf.rent"), value: Math.round(m.expenseBreakdown.operations * 0.5), icon: Home, color: "text-destructive" },
+    { label: t("cf.software"), value: m.expenseBreakdown.software, icon: Cpu, color: "text-destructive" },
+    { label: t("cf.marketing"), value: m.expenseBreakdown.marketing, icon: Megaphone, color: "text-destructive" },
+    { label: t("cf.tax"), value: Math.round(m.expenses * 0.06), icon: Receipt, color: "text-destructive" },
+    { label: t("cf.other"), value: m.expenseBreakdown.other + m.expenseBreakdown.travel + m.expenseBreakdown.professional, icon: Briefcase, color: "text-muted-foreground" },
   ];
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <KPICard label="Opening Balance" value={formatConverted(m.openingBalance, "USD", home)} subtitle={`Start of ${m.label}`} />
+        <KPICard label={t("kpi.openingBalance")} value={formatConverted(m.openingBalance, "USD", home)} subtitle={`${t("kpi.startOf")} ${mShort(m.label)}`} />
         <KPICard
-          label="Net Movement"
+          label={t("kpi.netMovement")}
           value={formatConverted(m.cashInflow - m.cashOutflow, "USD", home)}
           tone={m.cashInflow - m.cashOutflow >= 0 ? "success" : "danger"}
-          subtitle={`Inflows ${formatConverted(m.cashInflow, "USD", home, { compact: true })} · Outflows ${formatConverted(m.cashOutflow, "USD", home, { compact: true })}`}
+          subtitle={`${t("kpi.inflows")} ${formatConverted(m.cashInflow, "USD", home, { compact: true })} · ${t("kpi.outflows")} ${formatConverted(m.cashOutflow, "USD", home, { compact: true })}`}
         />
-        <KPICard label="Closing Balance" value={formatConverted(m.closingBalance, "USD", home)} subtitle={`End of ${m.label}`} />
+        <KPICard label={t("kpi.closingBalance")} value={formatConverted(m.closingBalance, "USD", home)} subtitle={`${t("kpi.endOf")} ${mShort(m.label)}`} />
       </div>
 
       <Card>
         <div className="flex flex-wrap items-end justify-between gap-3 mb-3">
           <div>
-            <h2 className="text-sm font-semibold">Monthly Waterfall</h2>
-            <p className="text-xs text-muted-foreground">Inflows, outflows, and running balance. Click a month to drill in.</p>
+            <h2 className="text-sm font-semibold">{t("card.monthlyWaterfall")}</h2>
+            <p className="text-xs text-muted-foreground">{t("card.monthlyWaterfallSub")}</p>
           </div>
           <div className="flex gap-1 overflow-x-auto">
             {MONTHLY.map((mm, i) => (
@@ -95,7 +98,7 @@ function CashFlowPage() {
                   "px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors",
                   state.activeMonth === i ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/70",
                 )}
-              >{mm.label}</button>
+              >{mShort(mm.label)}</button>
             ))}
           </div>
         </div>
@@ -119,8 +122,8 @@ function CashFlowPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <Card className="lg:col-span-3">
-          <h3 className="text-sm font-semibold mb-1">Daily Balance — {m.label}</h3>
-          <p className="text-xs text-muted-foreground mb-3">Min: {formatConverted(minBalance, "USD", home)} · Danger threshold: {formatConverted(dangerThreshold, "USD", home)}</p>
+          <h3 className="text-sm font-semibold mb-1">{t("card.dailyBalance")} — {mShort(m.label)}</h3>
+          <p className="text-xs text-muted-foreground mb-3">{t("card.dailyBalanceMin")}: {formatConverted(minBalance, "USD", home)} · {t("card.dailyBalanceDanger")}: {formatConverted(dangerThreshold, "USD", home)}</p>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={daily} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -134,7 +137,7 @@ function CashFlowPage() {
                 <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} tickFormatter={(v) => formatConverted(v, "USD", home, { compact: true })} />
                 <Tooltip content={<MoneyTooltip fromCurrency="USD" />} />
-                <ReferenceLine y={dangerThreshold} stroke="var(--color-destructive)" strokeDasharray="4 4" label={{ value: "Min safe", fontSize: 10, fill: "var(--color-destructive)", position: "insideTopRight" }} />
+                <ReferenceLine y={dangerThreshold} stroke="var(--color-destructive)" strokeDasharray="4 4" label={{ value: t("card.minSafe"), fontSize: 10, fill: "var(--color-destructive)", position: "insideTopRight" }} />
                 <Area type="monotone" dataKey="balance" stroke="var(--color-primary)" strokeWidth={2} fill="url(#bal)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -142,10 +145,10 @@ function CashFlowPage() {
         </Card>
 
         <Card className="lg:col-span-2">
-          <h3 className="text-sm font-semibold mb-3">Inflows vs Outflows</h3>
+          <h3 className="text-sm font-semibold mb-3">{t("card.inflowsVsOutflows")}</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Inflows</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">{t("kpi.inflows")}</div>
               <ul className="space-y-1.5">
                 {inflowItems.map((i) => (
                   <li key={i.label} className="flex items-center gap-2 text-xs">
@@ -157,7 +160,7 @@ function CashFlowPage() {
               </ul>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Outflows</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">{t("kpi.outflows")}</div>
               <ul className="space-y-1.5">
                 {outflowItems.map((i) => (
                   <li key={i.label} className="flex items-center gap-2 text-xs">
@@ -177,11 +180,8 @@ function CashFlowPage() {
           <div className="flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 text-warning-foreground" />
             <div className="text-xs">
-              <div className="font-semibold text-sm text-foreground mb-0.5">Projected cash shortfall next month</div>
-              <p className="text-muted-foreground">
-                Projected closing balance is {formatConverted(projClosing, "USD", home)} — below 15% of monthly expenses.
-                Consider accelerating receivables collection or deferring non-critical expenses.
-              </p>
+              <div className="font-semibold text-sm text-foreground mb-0.5">{t("card.projectedShortfall")}</div>
+              <p className="text-muted-foreground">{t("card.projectedShortfallMsg", { amt: formatConverted(projClosing, "USD", home) })}</p>
             </div>
           </div>
         </Card>
@@ -192,19 +192,19 @@ function CashFlowPage() {
           {drill !== null && (
             <>
               <SheetHeader>
-                <SheetTitle>{MONTHLY[drill].label} {MONTHLY[drill].year}</SheetTitle>
-                <SheetDescription>Transaction drill-down for the selected month.</SheetDescription>
+                <SheetTitle>{mShort(MONTHLY[drill].label)} {MONTHLY[drill].year}</SheetTitle>
+                <SheetDescription>{t("card.txnDrill")}</SheetDescription>
               </SheetHeader>
               <div className="mt-4 space-y-2">
-                <DrillRow label="Inflows" value={formatConverted(MONTHLY[drill].cashInflow, "USD", home)} tone="success" />
-                <DrillRow label="Outflows" value={formatConverted(MONTHLY[drill].cashOutflow, "USD", home)} tone="danger" />
-                <DrillRow label="Net" value={formatConverted(MONTHLY[drill].cashInflow - MONTHLY[drill].cashOutflow, "USD", home)} />
-                <DrillRow label="Closing Balance" value={formatConverted(MONTHLY[drill].closingBalance, "USD", home)} />
+                <DrillRow label={t("kpi.inflows")} value={formatConverted(MONTHLY[drill].cashInflow, "USD", home)} tone="success" />
+                <DrillRow label={t("kpi.outflows")} value={formatConverted(MONTHLY[drill].cashOutflow, "USD", home)} tone="danger" />
+                <DrillRow label={t("card.net")} value={formatConverted(MONTHLY[drill].cashInflow - MONTHLY[drill].cashOutflow, "USD", home)} />
+                <DrillRow label={t("card.closingBalanceShort")} value={formatConverted(MONTHLY[drill].closingBalance, "USD", home)} />
                 <div className="pt-3 mt-3 border-t border-border">
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Outflow breakdown</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">{t("card.outflowBreakdown")}</div>
                   <ul className="space-y-1.5 text-xs">
                     {(Object.entries(MONTHLY[drill].expenseBreakdown) as Array<[string, number]>).map(([k, v]) => (
-                      <li key={k} className="flex justify-between"><span className="capitalize">{k}</span><span className="tabular">{formatConverted(v, "USD", home)}</span></li>
+                      <li key={k} className="flex justify-between"><span>{t(`cat.${k}`)}</span><span className="tabular">{formatConverted(v, "USD", home)}</span></li>
                     ))}
                   </ul>
                 </div>
