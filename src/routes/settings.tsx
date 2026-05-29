@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import type { CurrencyCode } from "@/lib/finance/types";
 import { LANGUAGES, useT, type Language } from "@/lib/finance/i18n";
-import { validateSnapshot } from "@/lib/finance/companies";
+import { snapshotToXlsxBlob, workbookFromFile, workbookToSnapshot } from "@/lib/finance/excel";
 
 export const Route = createFileRoute("/settings")({ component: SettingsPage });
 
@@ -30,12 +30,12 @@ function SettingsPage() {
       toast.error("No active company to export");
       return;
     }
-    const blob = new Blob([JSON.stringify(snap, null, 2)], { type: "application/json" });
+    const blob = snapshotToXlsxBlob(snap);
     const url = URL.createObjectURL(blob);
     const safe = (activeCompany?.name ?? "finboard").replace(/[^a-z0-9-_]+/gi, "-").toLowerCase();
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${safe}-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `${safe}-${new Date().toISOString().slice(0, 10)}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Exported company snapshot");
@@ -43,13 +43,13 @@ function SettingsPage() {
 
   async function handleImportFile(file: File) {
     try {
-      const text = await file.text();
-      const parsed = JSON.parse(text);
-      if (!validateSnapshot(parsed)) {
-        toast.error("Invalid snapshot file");
+      const wb = await workbookFromFile(file);
+      const parsed = workbookToSnapshot(wb);
+      if (!parsed) {
+        toast.error("Invalid spreadsheet — missing Profile or Invoices sheet");
         return;
       }
-      const baseName = parsed.profile.name || file.name.replace(/\.json$/i, "");
+      const baseName = parsed.profile.name || file.name.replace(/\.(xlsx|xls)$/i, "");
       const name = window.prompt("Import as company name:", `${baseName} (imported)`);
       if (!name) return;
       await importSnapshot(name.trim(), parsed);
@@ -67,7 +67,7 @@ function SettingsPage() {
           <div>
             <h3 className="text-sm font-semibold">Data Portability</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Export the active company as JSON or import a previously exported file as a new company.
+              Export the active company as an Excel workbook or import an .xlsx file as a new company.
             </p>
           </div>
           <div className="flex gap-2">
@@ -86,7 +86,7 @@ function SettingsPage() {
             <input
               ref={fileInput}
               type="file"
-              accept="application/json,.json"
+              accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
